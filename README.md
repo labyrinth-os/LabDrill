@@ -86,6 +86,12 @@ wordcount \
 ## Docker
 
 ```bash
+sudo groupadd docker
+sodo usermod -aG docker $USER
+newgrp docker
+```
+
+```bash
 docker build -t multiply-app .
 docker run -it --rm multiply-app
 docker login
