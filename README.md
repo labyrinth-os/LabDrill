@@ -42,7 +42,7 @@ git clone https://github.com/cloudsimplus/cloudsimplus-examples.git
 mvn compile
 ```
 ```bash
-mvn exec:java -Dexec.mainClass="org.Cloudsimplus.examples.BasicFirstExample"
+mvn exec:java -Dexec.mainClass="org.cloudsimplus.examples.BasicFirstExample"
 ```
 
 ## Hadoop
