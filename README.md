@@ -52,6 +52,11 @@ mkdir -p ~/wordcount
 cd ~/wordcount
 nano input.txt
 ```
+
+```bash
+hdfs namenode -format
+```
+
 ```bash
 hdfs dfs -mkdir -p /user/$USER/wordcount/input
 ```
