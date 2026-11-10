@@ -113,3 +113,46 @@ COPY multi.py .
 
 CMD ["python","-u","multi.py"]
 ```
+
+## Hadoop via Docker
+
+```bash
+git clone https://github.com/big-data-europe/docker-hadoop.git
+```
+
+```bash
+sudo apt install docker docker-compose git
+sudo apt update && sudo apt install python3-setuptools -y
+```
+
+```bash
+docker-compose up -d
+```
+
+```bash
+docker ps
+```
+
+```bash
+docker exec -it namenode bash
+```
+
+```bash
+hdfs dfs -mkdir -p /user/root/input
+
+echo "Sample text" > Sample.txt
+
+hdfs dfs -put Sample.txt /user/root/input
+
+hdfs dfs -ls /user/root/input
+
+hadoop jar /opt/hadoop-3.2.1/share/hadoop/mapreduce/hadoop-mapreduce-examples-3.2.1.jar wordcount /user/root/input /user/root/output
+
+hdfs dfs -cat /user/root/output/part-r-00000
+
+exit
+```
+
+```bash
+docker-compose down
+```
