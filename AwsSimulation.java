@@ -1,4 +1,3 @@
-
 package org.cloudsimplus.examples;
 
 import java.util.ArrayList;
@@ -6,10 +5,12 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.cloudsimplus.core.CloudSimPlus;
-import org.cloudsimplus.datacenters.DatacenterSimple;
+import org.cloudsimplus.resources.CoreCapacity;
+import org.cloudsimplus.hosts.Host;
 import org.cloudsimplus.hosts.HostSimple;
-import org.cloudsimplus.resources.PeSimple;
+import org.cloudsimplus.datacenters.DatacenterSimple;
 import org.cloudsimplus.brokers.DatacenterBrokerSimple;
+import org.cloudsimplus.vms.Vm;
 import org.cloudsimplus.vms.VmSimple;
 import org.cloudsimplus.cloudlets.Cloudlet;
 import org.cloudsimplus.cloudlets.CloudletSimple;
@@ -22,32 +23,30 @@ public class AwsSimulation {
 
         System.out.println("AWS Cloud Simulation - SJF Scheduling");
 
-        // Initialize CloudSim
+        // 1. Initialize CloudSim
         CloudSimPlus simulation = new CloudSimPlus();
 
-        // Create physical host
-        List<PeSimple> peList = new ArrayList<>();
-
-        for (int i = 0; i < 4; i++) {
-            peList.add(new PeSimple(2000));
-        }
-
-        HostSimple host = new HostSimple(
-            8192, 100000, 1000000, peList
+        // 2. Create physical host  (Host, not HostSimple)
+        Host host = HostSimple.of(
+            8192, 100000, 1000000,
+            new CoreCapacity(4, 2000)
         );
 
-        // Create datacenter
-        new DatacenterSimple(simulation, List.of(host));
+        // 3. Create datacenter
+        DatacenterSimple.of(simulation, List.of(host));
 
-        // Create broker
+        // 4. Create broker
         DatacenterBrokerSimple broker =
             new DatacenterBrokerSimple(simulation);
 
-        // Create two virtual machines
-        List<VmSimple> vmList = new ArrayList<>();
+        // 5. Create two virtual machines  (List<Vm>, Vm)
+        List<Vm> vmList = new ArrayList<>();
 
         for (int i = 0; i < 2; i++) {
-            VmSimple vm = new VmSimple(1000, 2);
+
+            Vm vm = VmSimple.of(
+                new CoreCapacity(2, 1000)
+            );
 
             vm.setRam(2048);
             vm.setBw(10000);
@@ -56,23 +55,25 @@ public class AwsSimulation {
             vmList.add(vm);
         }
 
-        // Create cloudlets
+        // 6. Create cloudlets (jobs)
         List<Cloudlet> cloudletList = new ArrayList<>();
 
         long[] jobLengths = {10000, 3000, 7000, 2000};
 
+        UtilizationModelDynamic utilization =
+            new UtilizationModelDynamic(0.5);
+
         for (long length : jobLengths) {
 
-            CloudletSimple cloudlet = new CloudletSimple(
-                length, 1,
-                new UtilizationModelDynamic(0.5)
+            Cloudlet cloudlet = CloudletSimple.of(   // Cloudlet, not CloudletSimple
+                length, 1, utilization
             );
 
             cloudlet.setSizes(1024);
             cloudletList.add(cloudlet);
         }
 
-        // Apply SJF scheduling
+        // 7. Apply Shortest Job First scheduling
         broker.setCloudletComparator(
             Comparator.comparingLong(Cloudlet::getLength)
         );
@@ -82,19 +83,21 @@ public class AwsSimulation {
         cloudletList.stream()
             .sorted(Comparator.comparingLong(Cloudlet::getLength))
             .forEach(c ->
-                System.out.println("Job Length: " + c.getLength() + " MI")
+                System.out.println(
+                    "Job Length: " + c.getLength() + " MI"
+                )
             );
 
-        // Submit VMs and cloudlets
+        // 8. Submit VMs and cloudlets
         broker.submitVmList(vmList);
         broker.submitCloudletList(cloudletList);
 
-        // Start simulation
-        System.out.println("\nStarting AWS Cloud Simulation...\n");
+        // 9. Start simulation
+        System.out.println("\nStarting Cloud Simulation...\n");
 
         simulation.start();
 
-        // Display results
+        // 10. Display results
         System.out.println("\nSimulation Results:");
 
         new CloudletsTableBuilder(
